@@ -1,0 +1,30 @@
+[project]
+name = "pipeline-extraccion-entidades"
+version = "0.1.0"
+description = "Pipeline LCEL de extraccion de entidades tecnicas con salida validada por Pydantic."
+requires-python = ">=3.12"
+dependencies = [
+    "langchain-anthropic>=1.7.2",
+    "langchain-core>=1.6.2",
+    "langchain-openai>=1.6.2",
+    "pydantic>=2.13.5",
+    "python-dotenv>=1.2.3",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+# Los modulos viven en la raiz; sin esto los tests no pueden importarlos.
+pythonpath = ["."]
+markers = [
+    "integration: hace una llamada real al proveedor; se saltea si no hay API key",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+]

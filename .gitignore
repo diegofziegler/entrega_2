@@ -6,6 +6,12 @@ dist/
 wheels/
 *.egg-info
 
+# Test / tooling caches
+.pytest_cache/
+
+# Configuracion local de herramientas
+.claude/
+
 # Virtual environments
 .venv
 .env
