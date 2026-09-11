@@ -6,7 +6,6 @@ import logging
 
 # Los SDK de OpenAI y Anthropic usan httpx2, no httpx: el request tiene que ser
 # del mismo tipo que el que construiria el propio cliente.
-import httpx2
 import pytest
 from pydantic import ValidationError
 
@@ -96,15 +95,21 @@ async def test_cantidad_exacta_de_llamadas() -> None:
 def _error_de_conexion(provider: Provider) -> BaseException:
     """Construye un error transitorio preguntandole el tipo al registro.
 
-    El test no importa `openai` ni `anthropic`: toma la clase de la tupla que
-    declara `providers.py`.
+    El test toma la clase de la tupla que declara `providers.py`, sin acoplarse a
+    un SDK. Los SDK no comparten el mismo constructor de excepciones, por lo que
+    se instancia la primera clase que acepte un mensaje simple.
     """
     transitorias = providers.excepciones_transitorias(provider)
-    clase = next(e for e in transitorias if e.__name__ == "APIConnectionError")
-    return clase(
-        message="corte de red simulado",
-        request=httpx2.Request("POST", "https://ejemplo.invalid/v1/chat"),
-    )
+    for clase in transitorias:
+        try:
+            return clase("corte de red simulado")
+        except TypeError:
+            try:
+                # google-genai usa (codigo_http, cuerpo_de_respuesta).
+                return clase(503, {"error": {"message": "corte de red simulado"}})
+            except TypeError:
+                continue
+    pytest.fail(f"No se pudo instanciar ningun error transitorio de {provider.value}")
 
 
 @pytest.mark.parametrize("provider", list(Provider))
@@ -142,7 +147,7 @@ def test_el_registro_cubre_todos_los_providers() -> None:
 def test_provider_desconocido_falla_con_mensaje_claro() -> None:
     """Un proveedor fuera del registro falla explicito, no con un KeyError pelado."""
     with pytest.raises(ValueError, match="Proveedor no soportado"):
-        providers.excepciones_transitorias("gemini")  # type: ignore[arg-type]
+        providers.excepciones_transitorias("desconocido")  # type: ignore[arg-type]
 
 
 # --------------------------------------------------------------------------- #

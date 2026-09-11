@@ -8,7 +8,7 @@ de criticidad del problema y un resumen técnico.
 
 - Python 3.12 (queda fijado en `.python-version`; `uv` lo descarga solo si falta).
 - [`uv`](https://docs.astral.sh/uv/).
-- Una API key de OpenAI **o** de Anthropic.
+- Una API key de OpenAI, Anthropic **o** Gemini.
 
 ## Setup
 
@@ -28,11 +28,13 @@ Editá `.env`:
 
 | Variable | Descripción | Default |
 | --- | --- | --- |
-| `LLM_PROVIDER` | `openai` o `anthropic` | `openai` |
+| `LLM_PROVIDER` | `openai`, `anthropic` o `gemini` | `openai` |
 | `OPENAI_API_KEY` | Requerida si el proveedor es `openai` | — |
 | `ANTHROPIC_API_KEY` | Requerida si el proveedor es `anthropic` | — |
+| `GEMINI_API_KEY` | Requerida si el proveedor es `gemini` | — |
 | `OPENAI_MODEL` | Modelo de OpenAI | `gpt-4o-mini` |
 | `ANTHROPIC_MODEL` | Modelo de Anthropic | `claude-haiku-4-5-20251001` |
+| `GEMINI_MODEL` | Modelo de Gemini | `gemini-2.5-flash` |
 | `LLM_TEMPERATURE` | Temperatura | `0.7` |
 | `LLM_MAX_TOKENS` | Máximo de tokens de la respuesta | `1024` |
 | `LLM_MAX_RETRIES` | Reintentos de la cadena (mínimo 1) | `2` |

@@ -102,21 +102,21 @@ PROMPT = ChatPromptTemplate.from_messages(
 # Verificacion de la respuesta cruda
 # --------------------------------------------------------------------------- #
 
-# OpenAI lo informa en finish_reason, Anthropic en stop_reason.
+# OpenAI lo informa en finish_reason; Anthropic y Gemini, en stop_reason.
 _MOTIVOS_TRUNCAMIENTO = {"length", "max_tokens"}
 
 
 def _motivo_de_corte(bruto: Any) -> str | None:
     """Devuelve por que se corto la respuesta, o None si termino completa.
 
-    OpenAI informa el corte por tokens en `finish_reason='length'` y Anthropic en
-    `stop_reason='max_tokens'`; se miran las dos claves para no depender del
-    proveedor activo.
+    OpenAI informa el corte por tokens en `finish_reason='length'`; Anthropic y
+    Gemini lo hacen en `stop_reason='max_tokens'`. Se miran las dos claves para no
+    depender del proveedor activo.
     """
     metadata = getattr(bruto, "response_metadata", None) or {}
     for clave in ("finish_reason", "stop_reason"):
         motivo = metadata.get(clave)
-        if motivo in _MOTIVOS_TRUNCAMIENTO:
+        if isinstance(motivo, str) and motivo.lower() in _MOTIVOS_TRUNCAMIENTO:
             return f"{clave}={motivo}"
     return None
 
@@ -233,6 +233,8 @@ def _modelo_para(provider: Provider) -> str:
         return os.getenv("OPENAI_MODEL", "gpt-4o-mini")
     if provider is Provider.ANTHROPIC:
         return os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001")
+    if provider is Provider.GEMINI:
+        return os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
     raise ValueError(f"Proveedor no soportado: {provider}")
 
 
@@ -254,6 +256,7 @@ def cargar_config() -> ModelConfig:
         model=_modelo_para(provider),
         openai_api_key=_secreto("OPENAI_API_KEY"),
         anthropic_api_key=_secreto("ANTHROPIC_API_KEY"),
+        gemini_api_key=_secreto("GEMINI_API_KEY"),
         temperature=float(os.getenv("LLM_TEMPERATURE", "0.7")),
         max_tokens=int(os.getenv("LLM_MAX_TOKENS", "1024")),
         max_retries=int(os.getenv("LLM_MAX_RETRIES", "2")),

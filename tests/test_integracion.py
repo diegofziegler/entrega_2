@@ -18,6 +18,7 @@ pytestmark = pytest.mark.integration
 _CLAVE_POR_PROVEEDOR = {
     Provider.OPENAI: "OPENAI_API_KEY",
     Provider.ANTHROPIC: "ANTHROPIC_API_KEY",
+    Provider.GEMINI: "GEMINI_API_KEY",
 }
 
 TEXTO = (

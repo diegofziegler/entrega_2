@@ -10,6 +10,7 @@ class Provider(str, Enum):
 
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
+    GEMINI = "gemini"
 
 
 class Criticidad(str, Enum):
@@ -121,6 +122,7 @@ class ModelConfig(BaseModel):
     model: str = Field(min_length=1)
     openai_api_key: SecretStr | None = None
     anthropic_api_key: SecretStr | None = None
+    gemini_api_key: SecretStr | None = None
     temperature: float = Field(default=0.7, ge=0, le=2)
     max_tokens: int = Field(default=1024, gt=0)
     # ge=1 hace cumplir el "al menos un reintento" que exige la consigna.

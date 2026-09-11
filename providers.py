@@ -1,6 +1,6 @@
 """Capa anticorrupcion entre el pipeline y los SDK de cada proveedor.
 
-Este es el unico modulo que sabe que existen OpenAI y Anthropic. Cumple el rol que
+Este es el unico modulo que sabe que existen OpenAI, Anthropic y Gemini. Cumple el rol que
 en el Modulo 1 tenia la carpeta `clients/`.
 
 Los SDK de OpenAI y Anthropic tienen jerarquias de excepciones estructuralmente
@@ -99,6 +99,31 @@ def _transitorias_anthropic() -> tuple[type[BaseException], ...]:
     return (RateLimitError, APIConnectionError, APITimeoutError, InternalServerError)
 
 
+def _crear_gemini(config: ModelConfig) -> "BaseChatModel":
+    """Construye el chat model de Gemini, importando el SDK recien al usarse."""
+    from langchain_google_genai import ChatGoogleGenerativeAI
+
+    if config.gemini_api_key is None:
+        raise ValueError(
+            "Falta GEMINI_API_KEY en el entorno y LLM_PROVIDER esta en 'gemini'."
+        )
+
+    return ChatGoogleGenerativeAI(
+        model=config.model,
+        temperature=config.temperature,
+        max_output_tokens=config.max_tokens,
+        api_key=config.gemini_api_key.get_secret_value(),
+        max_retries=_REINTENTOS_INTERNOS_SDK,
+    )
+
+
+def _transitorias_gemini() -> tuple[type[BaseException], ...]:
+    """Errores de Gemini que valen un reintento: red, timeout, 429 y 5xx."""
+    from google.genai.errors import APIError, ClientError, ServerError
+
+    return (APIError, ClientError, ServerError)
+
+
 _REGISTRO: dict[Provider, ProveedorLLM] = {
     Provider.OPENAI: ProveedorLLM(
         crear=_crear_openai,
@@ -107,6 +132,10 @@ _REGISTRO: dict[Provider, ProveedorLLM] = {
     Provider.ANTHROPIC: ProveedorLLM(
         crear=_crear_anthropic,
         transitorias=_transitorias_anthropic,
+    ),
+    Provider.GEMINI: ProveedorLLM(
+        crear=_crear_gemini,
+        transitorias=_transitorias_gemini,
     ),
 }
 
